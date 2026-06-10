@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Spec — App Eventi</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;font-size:15px;line-height:1.7;color:#1a1a1a;background:#fafaf8;padding:40px 20px;max-width:780px;margin:0 auto}
+h1{font-size:26px;font-weight:normal;margin-bottom:6px;border-bottom:2px solid #1a1a1a;padding-bottom:10px}
+.intro{font-size:13px;color:#666;margin-bottom:40px}
+h2{font-size:13px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin:40px 0 16px;padding-bottom:6px;border-bottom:1px solid #ddd}
+.widget{border:1px solid #ccc;border-radius:4px;margin-bottom:14px;overflow:hidden}
+.widget-head{background:#f0eeeb;padding:10px 14px;display:flex;align-items:baseline;gap:10px}
+.widget-name{font-size:14px;font-weight:bold;color:#1a1a1a}
+.widget-type{font-size:11px;color:#888;font-style:italic}
+.widget-size{font-size:11px;background:#ddd;color:#555;padding:2px 7px;border-radius:10px;margin-left:auto}
+.widget-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:0}
+.col{padding:0 8px}
+.col:first-child{padding-left:0;border-right:1px solid #eee}
+.col:last-child{padding-right:0}
+.col-label{font-size:10px;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;color:#aaa;margin-bottom:6px}
+ul{list-style:none;padding:0}
+li{font-size:13px;color:#333;padding:3px 0;border-bottom:1px dotted #eee;display:flex;gap:6px}
+li:last-child{border-bottom:none}
+li::before{content:'—';color:#bbb;flex-shrink:0}
+.note{font-size:12px;color:#888;font-style:italic;margin-top:8px;padding-top:6px;border-top:1px solid #eee;grid-column:span 2}
+.must{font-size:10px;background:#ffe0e0;color:#c00;padding:1px 5px;border-radius:3px;margin-left:4px;font-style:normal}
+.optional{font-size:10px;background:#e8f4e8;color:#2a7a2a;padding:1px 5px;border-radius:3px;margin-left:4px;font-style:normal}
+</style>
+</head>
+<body>
+
+<h1>Specifiche widget — Dashboard app eventi</h1>
+<p class="intro">Per ogni widget: nome, tipo di visualizzazione, dimensione consigliata, dati da mostrare, logica di calcolo e note implementative. <span style="background:#ffe0e0;color:#c00;padding:1px 5px;border-radius:3px;font-size:11px">must</span> = dato obbligatorio al lancio. <span style="background:#e8f4e8;color:#2a7a2a;padding:1px 5px;border-radius:3px;font-size:11px">v2</span> = integrabile in fase successiva.</p>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>01 — Revenue & economia</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Ricavi totali</span>
+    <span class="widget-type">numero hero + mini-breakdown</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Importo totale nel periodo selezionato <span class="must">must</span></li>
+        <li>Delta % rispetto al periodo precedente <span class="must">must</span></li>
+        <li>Breakdown per fonte: biglietti / abbonamenti org. / boost <span class="must">must</span></li>
+        <li>Ricavi netti (al netto commissioni gateway) <span class="optional">v2</span></li>
+        <li>Proiezione fine mese (interpolazione lineare) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Somma transazioni con status = "completed" nel range</li>
+        <li>Delta = (periodo_corrente − periodo_prec) / periodo_prec × 100</li>
+        <li>Escludere rimborsi (status = "refunded")</li>
+        <li>Valuta: EUR, sempre 2 decimali</li>
+      </ul>
+    </div>
+    <p class="note">Il range temporale è controllato dal selettore globale (oggi / 7g / 30g / trimestre / anno). Tutti i widget devono reagire allo stesso selettore.</p>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Valore medio ordine (AOV)</span>
+    <span class="widget-type">numero + sparkline 30 giorni</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>AOV nel periodo <span class="must">must</span></li>
+        <li>Delta vs periodo precedente <span class="must">must</span></li>
+        <li>AOV per categoria evento <span class="optional">v2</span></li>
+        <li>Sparkline giornaliera ultimi 30gg <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>AOV = totale_ricavi / numero_ordini_completati</li>
+        <li>Un ordine = una transazione (anche multi-biglietto)</li>
+        <li>La sparkline mostra l'AOV giorno per giorno</li>
+        <li>Tooltip al tap sul punto: data + valore esatto</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Andamento ricavi nel tempo</span>
+    <span class="widget-type">grafico a barre (giornaliero/settimanale)</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Barre per ricavi giornalieri o settimanali <span class="must">must</span></li>
+        <li>Linea overlay con periodo precedente <span class="optional">v2</span></li>
+        <li>Soglia target (se impostata dall'admin) <span class="optional">v2</span></li>
+        <li>Annotazioni automatiche su picchi anomali <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Granularità auto: 7gg → giornaliero, 30gg → giornaliero, trimestre → settimanale</li>
+        <li>Asse Y: parte da 0, scala al massimo del periodo + 10%</li>
+        <li>Tap su barra: tooltip con data, importo, n. ordini</li>
+        <li>Colore barra più alta: evidenziato</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Commissioni incassate</span>
+    <span class="widget-type">numero + breakdown per piano</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Totale commissioni nel periodo <span class="must">must</span></li>
+        <li>Breakdown: % da Free / Plus / Maxi / Ultra+ <span class="must">must</span></li>
+        <li>Commissione media per biglietto <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Commissione per piano: come da regole del tuo modello (0% Ultra+ fino a 30k, poi 2%, ecc.)</li>
+        <li>Raggruppare per piano_organizzatore al momento della vendita</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>02 — Traffico & conversioni</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Utenti attivi (DAU / WAU / MAU)</span>
+    <span class="widget-type">numero + barre comparazione</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Valore primario dipende dal range selezionato: DAU se "oggi", WAU se "7gg", MAU se "30gg+" <span class="must">must</span></li>
+        <li>Delta vs periodo precedente <span class="must">must</span></li>
+        <li>Ratio DAU/MAU (indice di stickiness) <span class="must">must</span></li>
+        <li>Breakdown: utenti nuovi vs di ritorno <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Utente attivo = almeno 1 sessione nel giorno/settimana/mese</li>
+        <li>Stickiness = DAU / MAU × 100 (target sano: &gt;20%)</li>
+        <li>Utente di ritorno = ha già avuto una sessione in un periodo precedente</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Visualizzazioni eventi</span>
+    <span class="widget-type">numero + barre giornaliere</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Totale pageview eventi nel periodo <span class="must">must</span></li>
+        <li>Visualizzazioni uniche (per utente distinto) <span class="must">must</span></li>
+        <li>Media visualizzazioni per evento <span class="must">must</span></li>
+        <li>Fonte del traffico: search / home feed / condivisione / link esterno <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Contare ogni apertura della scheda evento come 1 view</li>
+        <li>View unica: prima view per utente×evento nel periodo</li>
+        <li>Bounce rate su scheda evento: utente che esce senza azioni <span class="optional">v2</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Funnel di acquisto</span>
+    <span class="widget-type">barre orizzontali proporzionali (funnel)</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Step del funnel da mostrare</div>
+      <ul>
+        <li>1. Apertura app / sessione avviata <span class="must">must</span></li>
+        <li>2. Visualizzazione almeno 1 evento <span class="must">must</span></li>
+        <li>3. Tap su "Acquista" / inizio checkout <span class="must">must</span></li>
+        <li>4. Inserimento dati pagamento <span class="must">must</span></li>
+        <li>5. Acquisto completato <span class="must">must</span></li>
+        <li>Tasso di abbandono tra ogni step <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Ogni barra = n. utenti che hanno raggiunto quello step</li>
+        <li>% a fianco = rispetto allo step precedente (drop-off)</li>
+        <li>% totale = rispetto al top del funnel</li>
+        <li>Colorare in rosso step con drop-off &gt;60%</li>
+        <li>Filtro per piattaforma iOS/Android <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <p class="note">Il drop-off più critico è tipicamente tra step 3 e 4 (inizio checkout → inserimento pagamento). Monitorarlo ogni settimana è prioritario per ottimizzare il revenue.</p>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Conversion rate</span>
+    <span class="widget-type">numero grande + trend linea</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>CR globale: sessioni → acquisto <span class="must">must</span></li>
+        <li>CR per categoria evento <span class="optional">v2</span></li>
+        <li>CR per fonte di traffico <span class="optional">v2</span></li>
+        <li>Benchmark di settore (5-8% per app eventi) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>CR = acquisti_completati / sessioni_totali × 100</li>
+        <li>Alternativamente: acquisti / utenti_che_hanno_visto_almeno_1_evento</li>
+        <li>Indicare quale definizione si usa e mantenerla costante</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Tempo medio in sessione</span>
+    <span class="widget-type">numero + distribuzione (istogramma)</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Durata media sessione (min:sec) <span class="must">must</span></li>
+        <li>Sessioni totali nel periodo <span class="must">must</span></li>
+        <li>% sessioni &lt;30 secondi (bounce) <span class="must">must</span></li>
+        <li>Distribuzione: &lt;1min / 1-3min / 3-10min / &gt;10min <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Sessione = sequenza di eventi utente con max 30min di inattività tra uno e l'altro</li>
+        <li>Media esclude sessioni &lt;5 secondi (bot/accidentali)</li>
+        <li>Target sano per app eventi: 3-6 minuti</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>03 — Biglietti & eventi</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Biglietti venduti</span>
+    <span class="widget-type">numero + barre giornaliere</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>N. totale biglietti nel periodo <span class="must">must</span></li>
+        <li>Delta vs periodo precedente <span class="must">must</span></li>
+        <li>Breakdown per tipo: standard / ridotto / VIP <span class="must">must</span></li>
+        <li>N. biglietti rimborsati (separato) <span class="must">must</span></li>
+        <li>Biglietti gratuiti vs a pagamento <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Contare solo biglietti con status "confirmed"</li>
+        <li>Escludere i rimborsi dal totale principale, mostrarli a parte</li>
+        <li>Tasso rimborso = rimborsi / vendite × 100</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Top eventi per vendite</span>
+    <span class="widget-type">lista ordinata con barra comparativa</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare per ogni evento</div>
+      <ul>
+        <li>Posizione in classifica <span class="must">must</span></li>
+        <li>Nome evento + data + luogo <span class="must">must</span></li>
+        <li>N. biglietti venduti <span class="must">must</span></li>
+        <li>% posti occupati (venduti / capienza totale) <span class="must">must</span></li>
+        <li>Revenue generato dall'evento <span class="must">must</span></li>
+        <li>Stato: prossimo / live / concluso <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Ordinamento default: per n. biglietti venduti nel periodo</li>
+        <li>Filtri: per categoria, per organizzatore, per stato</li>
+        <li>Tap sull'evento → drill-down pagina evento con tutti i dettagli</li>
+        <li>Mostrare top 10, con "vedi tutti" che espande la lista</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Occupazione media eventi</span>
+    <span class="widget-type">gauge / numero percentuale</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>% media di riempimento su tutti gli eventi del periodo <span class="must">must</span></li>
+        <li>N. eventi sold out <span class="must">must</span></li>
+        <li>N. eventi con &lt;30% occupazione (alert) <span class="must">must</span></li>
+        <li>Distribuzione: 0-25% / 25-50% / 50-75% / 75-100% / sold out <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Occupazione evento = biglietti_venduti / capienza_dichiarata × 100</li>
+        <li>Media pesata: pesare per capienza (eventi grandi contano di più)</li>
+        <li>Sold out: occupazione ≥ 98%</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Calendario eventi (stato)</span>
+    <span class="widget-type">mini-calendario con dot colorati</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Giorni con eventi: dot verde = ok, arancio = &lt;50% venduto, rosso = &lt;20% <span class="must">must</span></li>
+        <li>Tap su giorno → lista eventi di quel giorno <span class="must">must</span></li>
+        <li>N. eventi totali per mese in intestazione <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Colore dot basato su % vendite al momento della visualizzazione</li>
+        <li>Mostrare solo eventi futuri + ultimi 7 giorni</li>
+        <li>Giorni senza eventi: grigio chiaro</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>04 — Utenti & retention</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Nuovi iscritti</span>
+    <span class="widget-type">numero + grafico area</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>N. nuovi account nel periodo <span class="must">must</span></li>
+        <li>Delta vs periodo precedente <span class="must">must</span></li>
+        <li>Breakdown per canale acquisizione: organico / referral / paid / social <span class="must">must</span></li>
+        <li>% completamento profilo (foto + preferenze) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Iscritto = account con email verificata</li>
+        <li>Canale: letto dal parametro UTM o referral code al momento della registrazione</li>
+        <li>Costo acquisizione per canale (CAC) se dati di spesa disponibili <span class="optional">v2</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Retention per coorte</span>
+    <span class="widget-type">tabella heatmap (settimane × coorti)</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Righe = coorti (settimana o mese di registrazione) <span class="must">must</span></li>
+        <li>Colonne = settimane successive (W0, W1, W2… W8) <span class="must">must</span></li>
+        <li>Cella = % utenti della coorte ancora attivi a quella settimana <span class="must">must</span></li>
+        <li>Colore più intenso = retention più alta <span class="must">must</span></li>
+        <li>Benchmark di settore nella riga header <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Utente "attivo" a W3 = ha aperto l'app almeno 1 volta nella settimana 3 dalla registrazione</li>
+        <li>W0 è sempre 100% (tutti gli iscritti aprono almeno una volta)</li>
+        <li>Target sano W4: &gt;30%. Sotto il 20% è segnale di problema onboarding</li>
+      </ul>
+    </div>
+    <p class="note">È il widget più complesso ma anche il più informativo sull'health del prodotto. La retention a W4 è il KPI singolo più predittivo del successo di un'app.</p>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Churn rate</span>
+    <span class="widget-type">numero + trend mensile</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Churn mensile utenti attivi <span class="must">must</span></li>
+        <li>Churn abbonati premium (separato, più critico) <span class="must">must</span></li>
+        <li>Delta vs mese precedente <span class="must">must</span></li>
+        <li>Motivi churn (da survey exit) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Churn = utenti_persi_nel_mese / utenti_inizio_mese × 100</li>
+        <li>Utente "perso" = inattivo da più di N giorni (definire soglia: es. 30 giorni)</li>
+        <li>Soglia di allerta: churn &gt;5% mensile</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">LTV — Lifetime Value</span>
+    <span class="widget-type">numero + segmentazione per tier</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>LTV medio utente <span class="must">must</span></li>
+        <li>LTV segmentato: utente free / premium <span class="must">must</span></li>
+        <li>LTV per canale di acquisizione <span class="optional">v2</span></li>
+        <li>Ratio LTV:CAC (target: &gt;3x) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>LTV semplice = ARPU × durata_media_utente_mesi</li>
+        <li>ARPU = ricavi_totali / utenti_attivi_medi</li>
+        <li>Durata media = 1 / churn_rate_mensile</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>05 — Engagement & social</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Salvataggi eventi (wishlist)</span>
+    <span class="widget-type">numero + ratio su visualizzazioni</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>N. salvataggi nel periodo <span class="must">must</span></li>
+        <li>Save rate = salvataggi / visualizzazioni evento <span class="must">must</span></li>
+        <li>Conversione da salvato a acquistato <span class="must">must</span></li>
+        <li>Top 5 eventi più salvati <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Save rate target: &gt;8% delle view</li>
+        <li>Conversione wishlist = biglietti_acquistati_da_saved / totale_saved × 100</li>
+        <li>Utente che salva ma non acquista entro 7gg → trigger reminder push</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Condivisioni eventi</span>
+    <span class="widget-type">numero + breakdown per canale</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>N. condivisioni totali <span class="must">must</span></li>
+        <li>Breakdown: WhatsApp / Instagram / copia link / altro <span class="must">must</span></li>
+        <li>Virality coefficient: acquisti originati da condivisione / condivisioni totali <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Tracciare tramite deep link con parametro source</li>
+        <li>Condivisione conta al tap su "condividi" (non solo se il destinatario apre)</li>
+        <li>Virality &gt;1 = crescita organica autosostenuta</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Attività per ora del giorno / giorno settimana</span>
+    <span class="widget-type">heatmap 7×24 (giorni × ore)</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Intensità sessioni per slot ora×giorno <span class="must">must</span></li>
+        <li>Picco di acquisti (slot più scuro) <span class="must">must</span></li>
+        <li>Slot ottimali per invio notifiche push <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Contare sessioni per (giorno_settimana, ora_locale_utente)</li>
+        <li>Normalizzare sul massimo → scala da 0 a 1 per colore</li>
+        <li>Utile per schedulare le push notification negli slot ad alta apertura</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Rating medio & recensioni</span>
+    <span class="widget-type">numero stelle + distribuzione a barre</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Rating medio (1 decimale) <span class="must">must</span></li>
+        <li>N. recensioni totali <span class="must">must</span></li>
+        <li>Distribuzione: quante 5★ / 4★ / 3★ / 2★ / 1★ <span class="must">must</span></li>
+        <li>Ultimi 3 mesi vs storico <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Media ponderata (non semplice) se volumi molto diversi tra eventi</li>
+        <li>Mostrare solo recensioni verificate (da chi ha acquistato il biglietto)</li>
+        <li>Alert se rating scende sotto 4.0 in 7 giorni</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>06 — Organizzatori</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Organizzatori attivi</span>
+    <span class="widget-type">numero + barre settimanali</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>N. organizzatori con almeno 1 evento pubblicato nel periodo <span class="must">must</span></li>
+        <li>N. nuovi organizzatori nel periodo <span class="must">must</span></li>
+        <li>Tasso attivazione: iscritti che pubblicano almeno 1 evento <span class="must">must</span></li>
+        <li>N. organizzatori churned (nessun evento negli ultimi 60gg) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Organizzatore "attivo" = almeno 1 evento published (non draft) nel periodo</li>
+        <li>Attivazione = ha completato l'onboarding E pubblicato almeno 1 evento</li>
+        <li>Target attivazione: &gt;60% degli iscritti</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Distribuzione piani organizzatori</span>
+    <span class="widget-type">donut chart + tabella comparativa</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>% organizzatori per piano: Free / Plus / Maxi / Ultra+ <span class="must">must</span></li>
+        <li>Trend upgrade/downgrade nel periodo <span class="must">must</span></li>
+        <li>Revenue per piano (quanto vale ogni segmento) <span class="must">must</span></li>
+        <li>N. upgrade nel periodo <span class="must">must</span></li>
+        <li>N. downgrade / cancellazioni <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Donut: % sul totale organizzatori registrati</li>
+        <li>Revenue per piano = n_organizzatori × prezzo_piano + commissioni_generate</li>
+        <li>MRR (Monthly Recurring Revenue) = somma abbonamenti attivi <span class="optional">v2</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Top organizzatori per revenue</span>
+    <span class="widget-type">lista con rank + delta</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare per riga</div>
+      <ul>
+        <li>Posizione + variazione rispetto a periodo prec. (↑↓=) <span class="must">must</span></li>
+        <li>Nome organizzatore + piano attivo <span class="must">must</span></li>
+        <li>N. eventi pubblicati nel periodo <span class="must">must</span></li>
+        <li>Revenue totale generato <span class="must">must</span></li>
+        <li>N. biglietti venduti + rating medio <span class="must">must</span></li>
+        <li>Tap → pagina dettaglio organizzatore <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Revenue = somma biglietti venduti × prezzo (dal loro account)</li>
+        <li>Non includere il costo del piano (quello è revenue per la piattaforma, non per l'organizzatore)</li>
+        <li>Filtro: per città, per categoria, per piano</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>07 — Notifiche & comunicazioni</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Performance push notification</span>
+    <span class="widget-type">tabella metriche + trend</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Delivery rate = notifiche consegnate / inviate <span class="must">must</span></li>
+        <li>Open rate = notifiche aperte / consegnate <span class="must">must</span></li>
+        <li>CTR = tap che portano ad azione / aperte <span class="must">must</span></li>
+        <li>Opt-out rate = utenti che disattivano le notifiche <span class="must">must</span></li>
+        <li>Breakdown per tipo: promo / reminder / transazionale <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Open rate target per app eventi: 8-15%</li>
+        <li>Opt-out &gt;2% = segnale di over-notifica, ridurre frequenza</li>
+        <li>Confrontare open rate per slot orario per ottimizzare il send time</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>08 — Soddisfazione (NPS & rating)</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">NPS — Net Promoter Score</span>
+    <span class="widget-type">numero grande + distribuzione promotori/passivi/detrattori</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>NPS score (da −100 a +100) <span class="must">must</span></li>
+        <li>% promotori (9-10) / passivi (7-8) / detrattori (0-6) <span class="must">must</span></li>
+        <li>N. risposte raccolte (base statistica) <span class="must">must</span></li>
+        <li>Trend mensile ultimi 6 mesi <span class="must">must</span></li>
+        <li>NPS separato per utenti e organizzatori <span class="optional">v2</span></li>
+        <li>Temi ricorrenti nei commenti liberi <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>NPS = %promotori − %detrattori</li>
+        <li>Survey: mostrare dopo il 2° acquisto completato</li>
+        <li>Non mostrare più di 1 volta ogni 90 giorni allo stesso utente</li>
+        <li>Benchmark settore: NPS &gt;30 è buono, &gt;50 è eccellente</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">App Store / Play Store rating</span>
+    <span class="widget-type">numero + trend + confronto versioni</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Rating medio App Store (iOS) <span class="must">must</span></li>
+        <li>Rating medio Play Store (Android) <span class="must">must</span></li>
+        <li>N. recensioni totali per piattaforma <span class="must">must</span></li>
+        <li>Ultime 3 recensioni negative (per azione rapida) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Dati da API App Store Connect e Google Play Developer API</li>
+        <li>Aggiornamento: 1 volta al giorno</li>
+        <li>Alert se rating scende di 0.2 punti in 7 giorni</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>09 — Performance tecnica</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Crash-free rate</span>
+    <span class="widget-type">numero % + trend + breakdown per versione app</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>% sessioni senza crash <span class="must">must</span></li>
+        <li>N. crash totali nel periodo <span class="must">must</span></li>
+        <li>Breakdown per versione app e per OS <span class="must">must</span></li>
+        <li>Top 3 crash più frequenti con stack trace <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Crash-free = (sessioni_totali − sessioni_con_crash) / sessioni_totali × 100</li>
+        <li>Target minimo: 99.0%. Sotto il 98% è critico</li>
+        <li>Fonte dati: Firebase Crashlytics o Sentry</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Latenza API & errori</span>
+    <span class="widget-type">numero ms + grafico percentili + error rate</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Latenza media (ms) <span class="must">must</span></li>
+        <li>P95 latenza (millisecondo al 95° percentile) <span class="must">must</span></li>
+        <li>Error rate % (richieste con status 4xx/5xx) <span class="must">must</span></li>
+        <li>Endpoint più lenti (top 5) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Target latenza media: &lt;200ms. P95: &lt;500ms</li>
+        <li>Error rate target: &lt;0.1%</li>
+        <li>Alert automatico se P95 supera 1 secondo</li>
+        <li>Fonte: backend logging o APM (Datadog, New Relic)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Tempo di caricamento app (startup)</span>
+    <span class="widget-type">numero + confronto iOS vs Android</span>
+    <span class="widget-size">metà larghezza</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Cold start time medio (ms) <span class="must">must</span></li>
+        <li>Warm start time medio (ms) <span class="must">must</span></li>
+        <li>Breakdown iOS vs Android <span class="must">must</span></li>
+        <li>Trend ultimi 30 giorni (peggiorato dopo aggiornamenti?) <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Cold start = dall'avvio processo al primo frame interattivo</li>
+        <li>Target: cold start &lt;2s, warm start &lt;500ms</li>
+        <li>Fonte: Firebase Performance Monitoring</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════ -->
+<h2>10 — Monetizzazione & growth</h2>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">MRR — Monthly Recurring Revenue</span>
+    <span class="widget-type">numero + grafico crescita + breakdown</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>MRR totale da abbonamenti organizzatori <span class="must">must</span></li>
+        <li>New MRR (da nuovi abbonati questo mese) <span class="must">must</span></li>
+        <li>Expansion MRR (da upgrade di piano) <span class="must">must</span></li>
+        <li>Churned MRR (da cancellazioni) <span class="must">must</span></li>
+        <li>Net new MRR = new + expansion − churned <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>MRR = somma canoni mensili attivi (normalizzare annuali ÷ 12)</li>
+        <li>Grafico: waterfall mensile con new/expansion/churned visibili separatamente</li>
+        <li>ARR = MRR × 12 (mostrare in header)</li>
+      </ul>
+    </div>
+    <p class="note">Per la tua struttura (abbonamenti organizzatori + commissioni), distinguere nettamente MRR ricorrente e commissioni variabili. Sono due business diversi con dinamiche diverse.</p>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Revenue per canale</span>
+    <span class="widget-type">barre orizzontali + % sul totale</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>Commissioni biglietteria <span class="must">must</span></li>
+        <li>Abbonamenti organizzatori (MRR) <span class="must">must</span></li>
+        <li>Boost / promozione eventi <span class="must">must</span></li>
+        <li>Pubblicità native (se attiva) <span class="optional">v2</span></li>
+        <li>% di ciascun canale sul totale <span class="must">must</span></li>
+        <li>Trend mese su mese per canale <span class="must">must</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Ogni barra proporzionale al valore assoluto</li>
+        <li>Evidenziare il canale cresciuto di più nel periodo</li>
+        <li>Alert se un canale scende &gt;20% MoM</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="widget-head">
+    <span class="widget-name">Programma referral / ambassador</span>
+    <span class="widget-type">numero + funnel referral</span>
+    <span class="widget-size">full width</span>
+  </div>
+  <div class="widget-body">
+    <div class="col">
+      <div class="col-label">Dati da mostrare</div>
+      <ul>
+        <li>N. referral link condivisi <span class="must">must</span></li>
+        <li>N. click su link referral <span class="must">must</span></li>
+        <li>N. iscrizioni da referral <span class="must">must</span></li>
+        <li>N. acquisti da referral <span class="must">must</span></li>
+        <li>Top 10 referrer (utenti / ambassador più attivi) <span class="must">must</span></li>
+        <li>Costo per acquisizione referral vs altri canali <span class="optional">v2</span></li>
+      </ul>
+    </div>
+    <div class="col">
+      <div class="col-label">Logica di calcolo</div>
+      <ul>
+        <li>Funnel referral: condivisione → click → iscrizione → acquisto</li>
+        <li>Virality coefficient K = inviti_per_utente × tasso_conversione_inviti</li>
+        <li>K &gt; 1 = crescita virale autosostenuta</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:40px;padding-top:20px;border-top:1px solid #ddd;font-size:12px;color:#999">
+  <p>Specifica dashboard app eventi — tutti i dati sono da intendere filtrati per il range temporale selezionato globalmente, salvo indicazione contraria. Aggiornamento dati consigliato: real-time per metriche live (eventi in corso, vendite), ogni 15 minuti per KPI operativi, giornaliero per retention e coorti.</p>
+</div>
+
+</body>
+</html>
