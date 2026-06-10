@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dashboard — App Eventi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+:root{
+  --bg:#0E0E10;
+  --bg2:#17171A;
+  --bg3:#1F1F23;
+  --border:#2A2A2F;
+  --text:#F0EFF5;
+  --text2:#9997A8;
+  --text3:#5C5A6B;
+  --accent:#C97EFF;
+  --accent2:#7B61FF;
+  --green:#3FD69E;
+  --red:#FF6B6B;
+  --amber:#FFB547;
+  --blue:#5BA8FF;
+  --pink:#FF7EB3;
+  --teal:#3FD6D0;
+  --r:22px;
+  --r-sm:14px;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;
+  min-height:100vh;
+  padding-bottom:32px;
+}
+.phone-wrap{
+  max-width:390px;
+  margin:0 auto;
+  padding:0;
+}
+
+/* TOP BAR */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px 12px;
+  position:sticky;
+  top:0;
+  background:var(--bg);
+  z-index:10;
+  border-bottom:1px solid var(--border);
+}
+.topbar-left{display:flex;flex-direction:column;gap:2px}
+.topbar-greeting{font-size:12px;color:var(--text2);font-weight:400}
+.topbar-title{font-size:16px;font-weight:600;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.notif-dot{position:relative}
+.notif-dot::after{content:'';position:absolute;top:-2px;right:-2px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
+
+/* PERIOD SELECTOR */
+.period-bar{
+  display:flex;
+  gap:8px;
+  padding:12px 20px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.period-bar::-webkit-scrollbar{display:none}
+.period-btn{
+  flex-shrink:0;
+  font-size:12px;
+  font-weight:500;
+  padding:6px 14px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text2);
+  cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  transition:all 0.15s;
+}
+.period-btn.active{
+  background:var(--accent2);
+  border-color:var(--accent2);
+  color:#fff;
+}
+
+/* SECTIONS */
+.section-label{
+  font-size:11px;
+  font-weight:600;
+  color:var(--text3);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  padding:16px 20px 8px;
+}
+
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:0 20px;
+}
+.grid-3{grid-template-columns:1fr 1fr 1fr}
+.grid-full{grid-template-columns:1fr}
+
+/* CARDS */
+.card{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:16px;
+  position:relative;
+  overflow:hidden;
+}
+.card-wide{grid-column:span 2}
+.card-title{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.card-title svg{flex-shrink:0}
+.card-num{font-family:'DM Serif Display',serif;font-size:30px;color:var(--text);line-height:1;margin-bottom:4px}
+.card-num-sm{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);line-height:1;margin-bottom:4px}
+.card-sub{font-size:11px;color:var(--text2)}
+.badge-change{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  font-size:11px;
+  font-weight:600;
+  padding:3px 7px;
+  border-radius:20px;
+  margin-top:6px;
+}
+.up{background:rgba(63,214,158,0.15);color:var(--green)}
+.down{background:rgba(255,107,107,0.15);color:var(--red)}
+.neutral{background:rgba(255,181,71,0.15);color:var(--amber)}
+
+/* ACCENT GLOW (solo sfondo decorativo) */
+.glow-accent{position:absolute;bottom:-20px;right:-20px;width:80px;height:80px;border-radius:50%;opacity:0.12;filter:blur(28px)}
+
+/* HERO CARD */
+.hero-card{
+  background:linear-gradient(135deg,#1A1030 0%,#0E0E18 100%);
+  border:1px solid #2E1F5E;
+  border-radius:var(--r);
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+}
+.hero-card::before{
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:160px;height:160px;
+  background:var(--accent2);
+  border-radius:50%;
+  opacity:0.08;
+  filter:blur(40px);
+}
+.hero-label{font-size:11px;font-weight:600;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.hero-num{font-family:'DM Serif Display',serif;font-size:44px;color:var(--text);line-height:1}
+.hero-sub{font-size:12px;color:var(--text2);margin-top:4px}
+.hero-row{display:flex;gap:20px;margin-top:16px}
+.hero-mini{display:flex;flex-direction:column;gap:2px}
+.hero-mini-val{font-size:16px;font-weight:600;color:var(--text)}
+.hero-mini-lbl{font-size:10px;color:var(--text3)}
+
+/* MINI BAR CHART */
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:44px;margin-top:10px}
+.bar{flex:1;background:var(--bg3);border-radius:4px 4px 0 0;transition:height 0.3s;min-height:4px}
+.bar.hi{background:var(--accent2)}
+
+/* DONUT */
+.donut-wrap{display:flex;align-items:center;gap:14px;margin-top:8px}
+.donut-svg{flex-shrink:0}
+.donut-legend{display:flex;flex-direction:column;gap:6px;flex:1}
+.donut-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)}
+.donut-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.donut-item-val{margin-left:auto;font-weight:600;color:var(--text);font-size:11px}
+
+/* SPARKLINE */
+.sparkline{margin-top:8px}
+
+/* FUNNEL */
+.funnel-row{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.funnel-item{display:flex;flex-direction:column;gap:3px}
+.funnel-label-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text2)}
+.funnel-val{font-weight:600;color:var(--text)}
+.funnel-bar-bg{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.funnel-bar-fill{height:100%;border-radius:3px;transition:width 0.5s}
+
+/* LIST ITEMS */
+.list-rows{display:flex;flex-direction:column;gap:0}
+.list-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.list-row:last-child{border-bottom:none}
+.list-rank{font-size:11px;color:var(--text3);width:16px;text-align:center;flex-shrink:0}
+.list-dot{width:28px;height:28px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.list-name{flex:1;font-size:12px;font-weight:500;color:var(--text)}
+.list-sub{font-size:10px;color:var(--text3)}
+.list-val{font-size:12px;font-weight:600;color:var(--text);text-align:right}
+
+/* GAUGE */
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:6px}
+.gauge-svg{width:100%;max-width:140px}
+
+/* HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+.hm-cell{aspect-ratio:1;border-radius:4px;background:var(--bg3)}
+.hm-cell.l1{background:#1C1040}
+.hm-cell.l2{background:#3A2080}
+.hm-cell.l3{background:#6040C0}
+.hm-cell.l4{background:var(--accent2)}
+.hm-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px}
+.hm-day{font-size:9px;color:var(--text3);text-align:center}
+
+/* RECENT LIST */
+.recent-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.recent-item:last-child{border-bottom:none}
+.recent-thumb{width:40px;height:40px;border-radius:12px;flex-shrink:0;object-fit:cover;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:18px}
+.recent-info{flex:1;display:flex;flex-direction:column;gap:2px}
+.recent-name{font-size:12px;font-weight:500;color:var(--text)}
+.recent-meta{font-size:10px;color:var(--text3)}
+.recent-val{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.recent-amount{font-size:13px;font-weight:600;color:var(--text)}
+.status-pill{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px}
+.pill-live{background:rgba(63,214,158,0.15);color:var(--green)}
+.pill-upcoming{background:rgba(91,168,255,0.15);color:var(--blue)}
+.pill-ended{background:var(--bg3);color:var(--text3)}
+
+/* RETENTION GRID */
+.retention-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:10px;font-size:9px;color:var(--text3);text-align:center}
+.ret-header{color:var(--text3);font-weight:600;padding:3px 0}
+.ret-cell{background:var(--bg3);border-radius:4px;padding:4px 2px;font-weight:600;font-size:10px;color:var(--text2)}
+.ret-cell.r0{background:#2A1F5E;color:var(--accent)}
+.ret-cell.r1{background:#1E1640;color:#7B61FF}
+.ret-cell.r2{background:#18122E;color:#5A45BB}
+.ret-cell.r3{background:#120E22;color:#443487}
+
+/* SCORE RING */
+.score-ring{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+.score-ring-val{font-family:'DM Serif Display',serif;font-size:24px;color:var(--text)}
+.score-ring-lbl{font-size:10px;color:var(--text3);text-align:center}
+
+/* BOTTOM NAV */
+.bottom-nav{
+  position:sticky;
+  bottom:0;
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0 20px;
+}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.45;transition:opacity 0.15s;padding:4px 12px}
+.nav-item.active{opacity:1}
+.nav-item svg{width:20px;height:20px}
+.nav-label{font-size:10px;font-weight:500;color:var(--text)}
+.nav-item.active .nav-label{color:var(--accent)}
+.nav-item.active svg{stroke:var(--accent)}
+
+/* INLINE SPARKLINE SVG */
+.spark-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+
+</style>
+</head>
+<body>
+
+<div class="phone-wrap">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-greeting">Bentornato</span>
+    <span class="topbar-title">Analytics</span>
+  </div>
+  <div class="topbar-right">
+    <div class="notif-dot">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9997A8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </div>
+    <div class="avatar">NK</div>
+  </div>
+</div>
+
+<!-- PERIOD -->
+<div class="period-bar">
+  <button class="period-btn">Oggi</button>
+  <button class="period-btn">7 giorni</button>
+  <button class="period-btn active">30 giorni</button>
+  <button class="period-btn">Trimestre</button>
+  <button class="period-btn">Anno</button>
+</div>
+
+<!-- HERO: REVENUE -->
+<div style="padding:0 20px">
+  <div class="hero-card">
+    <div class="hero-label">Ricavi totali</div>
+    <div class="hero-num">€24.870</div>
+    <div class="hero-sub">ultimi 30 giorni</div>
+    <div class="hero-row">
+      <div class="hero-mini"><span class="hero-mini-val">€19.320</span><span class="hero-mini-lbl">Biglietti</span></div>
+      <div class="hero-mini"><span class="hero-mini-val">€3.850</span><span class="hero-mini-lbl">Abbonamenti</span></div>
+      <div class="hero-mini"><span class="hero-mini-val">€1.700</span><span class="hero-mini-lbl">Boost</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI ROW 1 -->
+<div class="section-label">Traffico & conversioni</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Utenti attivi
+    </div>
+    <div class="card-num">12.4k</div>
+    <div class="badge-change up">↑ +18%</div>
+    <div class="bar-chart" id="bc1"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Visualizzazioni eventi
+    </div>
+    <div class="card-num">89.2k</div>
+    <div class="badge-change up">↑ +32%</div>
+    <div class="bar-chart" id="bc2"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Conv. rate
+    </div>
+    <div class="card-num">6.4%</div>
+    <div class="badge-change neutral">~ +0.2pp</div>
+    <div style="margin-top:8px;font-size:10px;color:var(--text3)">view → acquisto</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Tempo medio sessione
+    </div>
+    <div class="card-num">4:32</div>
+    <div class="badge-change up">↑ +0:44</div>
+    <div style="margin-top:8px;font-size:10px;color:var(--text3)">min:sec</div>
+  </div>
+
+  <div class="card card-wide">
+    <div class="card-title">Funnel di acquisto</div>
+    <div class="funnel-row">
+      <div class="funnel-item">
+        <div class="funnel-label-row"><span>Apertura app</span><span class="funnel-val">89.200</span></div>
+        <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:100%;background:var(--accent2)"></div></div>
+      </div>
+      <div class="funnel-item">
+        <div class="funnel-label-row"><span>Visualizza evento</span><span class="funnel-val">41.600</span></div>
+        <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:46.6%;background:var(--blue)"></div></div>
+      </div>
+      <div class="funnel-item">
+        <div class="funnel-label-row"><span>Inizia checkout</span><span class="funnel-val">9.800</span></div>
+        <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:11%;background:var(--teal)"></div></div>
+      </div>
+      <div class="funnel-item">
+        <div class="funnel-label-row"><span>Acquisto completato</span><span class="funnel-val">5.714</span></div>
+        <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:6.4%;background:var(--green)"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BIGLIETTI & EVENTI -->
+<div class="section-label">Biglietti & eventi</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">Biglietti venduti</div>
+    <div class="card-num">5.714</div>
+    <div class="badge-change up">↑ +24%</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Valore medio ordine</div>
+    <div class="card-num">€18,4</div>
+    <div class="badge-change up">↑ +€2,1</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Eventi live ora</div>
+    <div class="card-num" style="color:var(--green)">7</div>
+    <div style="margin-top:8px;display:flex;align-items:center;gap:5px">
+      <span style="width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;animation:pulse 1.5s infinite"></span>
+      <span style="font-size:10px;color:var(--text3)">in corso</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Prossimi eventi</div>
+    <div class="card-num">34</div>
+    <div style="margin-top:8px;font-size:10px;color:var(--text3)">nei pross. 7 giorni</div>
+  </div>
+
+  <div class="card card-wide">
+    <div class="card-title">Top 5 eventi per vendite</div>
+    <div class="list-rows">
+      <div class="list-row">
+        <span class="list-rank">1</span>
+        <div class="list-dot" style="background:#1A1040">🎵</div>
+        <div style="flex:1"><div class="list-name">Notte Elettronica</div><div class="list-sub">Sabato 14 giu</div></div>
+        <div class="list-val">842 <span style="font-size:10px;color:var(--text3)">biglietti</span></div>
+      </div>
+      <div class="list-row">
+        <span class="list-rank">2</span>
+        <div class="list-dot" style="background:#0D1A18">🌿</div>
+        <div style="flex:1"><div class="list-name">Mercato Bio Trieste</div><div class="list-sub">Dom 15 giu</div></div>
+        <div class="list-val">610</div>
+      </div>
+      <div class="list-row">
+        <span class="list-rank">3</span>
+        <div class="list-dot" style="background:#1A0D14">🎭</div>
+        <div style="flex:1"><div class="list-name">Teatro Verdi – Nabucco</div><div class="list-sub">Ven 13 giu</div></div>
+        <div class="list-val">587</div>
+      </div>
+      <div class="list-row">
+        <span class="list-rank">4</span>
+        <div class="list-dot" style="background:#0D0F1A">🏃</div>
+        <div style="flex:1"><div class="list-name">Run Trieste 10k</div><div class="list-sub">Dom 22 giu</div></div>
+        <div class="list-val">421</div>
+      </div>
+      <div class="list-row">
+        <span class="list-rank">5</span>
+        <div class="list-dot" style="background:#1A1A0D">🍷</div>
+        <div style="flex:1"><div class="list-name">Wine Tasting Collio</div><div class="list-sub">Sab 21 giu</div></div>
+        <div class="list-val">319</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CATEGORIE -->
+<div class="section-label">Distribuzione categorie</div>
+<div class="grid">
+  <div class="card card-wide">
+    <div class="card-title">Biglietti per categoria</div>
+    <div class="donut-wrap">
+      <svg class="donut-svg" width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#1F1F23" stroke-width="14"/>
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#7B61FF" stroke-width="14" stroke-dasharray="88 132" stroke-dashoffset="-27" stroke-linecap="round"/>
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#3FD6D0" stroke-width="14" stroke-dasharray="52 168" stroke-dashoffset="-115" stroke-linecap="round"/>
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#FFB547" stroke-width="14" stroke-dasharray="33 187" stroke-dashoffset="-167" stroke-linecap="round"/>
+        <circle cx="45" cy="45" r="35" fill="none" stroke="#FF7EB3" stroke-width="14" stroke-dasharray="27 193" stroke-dashoffset="-200" stroke-linecap="round"/>
+      </svg>
+      <div class="donut-legend">
+        <div class="donut-item"><span class="donut-dot" style="background:#7B61FF"></span>Musica<span class="donut-item-val">40%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#3FD6D0"></span>Sport<span class="donut-item-val">24%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#FFB547"></span>Food & Wine<span class="donut-item-val">15%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#FF7EB3"></span>Arte / Teatro<span class="donut-item-val">12%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#2A2A2F"></span>Altro<span class="donut-item-val">9%</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UTENTI -->
+<div class="section-label">Utenti & retention</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">Nuovi iscritti</div>
+    <div class="card-num">1.247</div>
+    <div class="badge-change up">↑ +11%</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Churn rate</div>
+    <div class="card-num">3.2%</div>
+    <div class="badge-change down">↑ +0.4pp</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">DAU / MAU ratio</div>
+    <div class="card-num">22%</div>
+    <div class="badge-change neutral">~ stable</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Utenti premium</div>
+    <div class="card-num">14%</div>
+    <div class="badge-change up">↑ +2pp</div>
+  </div>
+
+  <div class="card card-wide">
+    <div class="card-title">Retention per coorte (settimane)</div>
+    <div class="retention-grid">
+      <div class="ret-header">Coorte</div>
+      <div class="ret-header">W1</div>
+      <div class="ret-header">W2</div>
+      <div class="ret-header">W3</div>
+      <div class="ret-header">W4</div>
+      <div style="font-size:9px;color:var(--text3);padding:3px 0">Mag</div>
+      <div class="ret-cell r0">68%</div>
+      <div class="ret-cell r1">44%</div>
+      <div class="ret-cell r2">31%</div>
+      <div class="ret-cell r3">24%</div>
+      <div style="font-size:9px;color:var(--text3);padding:3px 0">Apr</div>
+      <div class="ret-cell r0">71%</div>
+      <div class="ret-cell r1">48%</div>
+      <div class="ret-cell r2">35%</div>
+      <div class="ret-cell r3">27%</div>
+      <div style="font-size:9px;color:var(--text3);padding:3px 0">Mar</div>
+      <div class="ret-cell r0">65%</div>
+      <div class="ret-cell r1">42%</div>
+      <div class="ret-cell r2">29%</div>
+      <div class="ret-cell r3">22%</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ENGAGEMENT -->
+<div class="section-label">Engagement & social</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">Salvataggi evento</div>
+    <div class="card-num">8.320</div>
+    <div class="badge-change up">↑ +29%</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Condivisioni</div>
+    <div class="card-num">2.140</div>
+    <div class="badge-change up">↑ +41%</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Recensioni scritte</div>
+    <div class="card-num">634</div>
+    <div class="badge-change up">↑ +18%</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Rating medio</div>
+    <div class="card-num">4.7<span style="font-size:18px;color:var(--text3)">/5</span></div>
+    <div style="margin-top:4px;font-size:18px;color:var(--amber)">★★★★★</div>
+  </div>
+
+  <div class="card card-wide">
+    <div class="card-title">Attività per giorno della settimana</div>
+    <div class="hm-days">
+      <div class="hm-day">L</div><div class="hm-day">M</div><div class="hm-day">M</div><div class="hm-day">G</div><div class="hm-day">V</div><div class="hm-day">S</div><div class="hm-day">D</div>
+    </div>
+    <div class="heatmap" id="heatmap"></div>
+  </div>
+
+</div>
+
+<!-- ORGANIZZATORI -->
+<div class="section-label">Organizzatori</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">Organizzatori attivi</div>
+    <div class="card-num">187</div>
+    <div class="badge-change up">↑ +22</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Nuovi organizzatori</div>
+    <div class="card-num">34</div>
+    <div class="badge-change up">↑ +8</div>
+  </div>
+
+  <div class="card card-wide">
+    <div class="card-title">Top organizzatori per revenue</div>
+    <div class="list-rows">
+      <div class="list-row">
+        <span class="list-rank">1</span>
+        <div class="list-dot" style="background:#1A1040;font-size:13px;display:flex;align-items:center;justify-content:center">🎪</div>
+        <div style="flex:1"><div class="list-name">Arci Trieste</div><div class="list-sub">14 eventi attivi</div></div>
+        <div class="list-val">€4.210</div>
+      </div>
+      <div class="list-row">
+        <span class="list-rank">2</span>
+        <div class="list-dot" style="background:#0D1A10;font-size:13px;display:flex;align-items:center;justify-content:center">🎵</div>
+        <div style="flex:1"><div class="list-name">Barriera Music Club</div><div class="list-sub">8 eventi attivi</div></div>
+        <div class="list-val">€3.840</div>
+      </div>
+      <div class="list-row">
+        <span class="list-rank">3</span>
+        <div class="list-dot" style="background:#1A0D0D;font-size:13px;display:flex;align-items:center;justify-content:center">🏟</div>
+        <div style="flex:1"><div class="list-name">Polisportiva FVG</div><div class="list-sub">11 eventi attivi</div></div>
+        <div class="list-val">€2.990</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-wide">
+    <div class="card-title">Abbonamenti organizzatori</div>
+    <div class="donut-wrap" style="margin-top:10px">
+      <svg width="80" height="80" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#1F1F23" stroke-width="12"/>
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#7B61FF" stroke-width="12" stroke-dasharray="47 141" stroke-dashoffset="-23" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#FFB547" stroke-width="12" stroke-dasharray="38 150" stroke-dashoffset="-70" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#3FD69E" stroke-width="12" stroke-dasharray="27 161" stroke-dashoffset="-108" stroke-linecap="round"/>
+        <circle cx="40" cy="40" r="30" fill="none" stroke="#2A2A2F" stroke-width="12" stroke-dasharray="77 111" stroke-dashoffset="-135" stroke-linecap="round"/>
+      </svg>
+      <div class="donut-legend">
+        <div class="donut-item"><span class="donut-dot" style="background:#7B61FF"></span>Ultra+<span class="donut-item-val">25%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#FFB547"></span>Maxi<span class="donut-item-val">20%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#3FD69E"></span>Plus<span class="donut-item-val">14%</span></div>
+        <div class="donut-item"><span class="donut-dot" style="background:#2A2A2F"></span>Free<span class="donut-item-val">41%</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- APP PERFORMANCE -->
+<div class="section-label">Performance app</div>
+<div class="grid">
+
+  <div class="card">
+    <div class="card-title">App Store Rating</div>
+    <div class="card-num">4.8</div>
+    <div style="margin-top:4px;font-size:16px;color:var(--amber)">★★★★★</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Crash-free rate</div>
+    <div class="card-num" style="color:var(--green)">99.2%</div>
+    <div class="badge-change up">↑ +0.3pp</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tempo medio caricamento</div>
+    <div class="card-num">1.4s</div>
+    <div class="badge-change up">↓ -0.2s</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Errori API (ultimo ora)</div>
+    <div class="card-num" style="color:var(--amber)">12</div>
+    <div class="badge-change neutral">0.04%</div>
+  </div>
+
+</div>
+
+<!-- NPS -->
+<div class="section-label">Soddisfazione</div>
+<div class="grid">
+
+  <div class="card card-wide">
+    <div class="card-title">NPS — Net Promoter Score</div>
+    <div style="display:flex;align-items:center;gap:20px;margin-top:8px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-family:'DM Serif Display',serif;font-size:48px;color:var(--green)">+62</div>
+        <div style="font-size:10px;color:var(--text3)">score corrente</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <div class="funnel-item">
+          <div class="funnel-label-row"><span style="color:var(--green)">Promotori (9-10)</span><span class="funnel-val" style="color:var(--green)">71%</span></div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:71%;background:var(--green)"></div></div>
+        </div>
+        <div class="funnel-item">
+          <div class="funnel-label-row"><span style="color:var(--amber)">Passivi (7-8)</span><span class="funnel-val" style="color:var(--amber)">20%</span></div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:20%;background:var(--amber)"></div></div>
+        </div>
+        <div class="funnel-item">
+          <div class="funnel-label-row"><span style="color:var(--red)">Detrattori (0-6)</span><span class="funnel-val" style="color:var(--red)">9%</span></div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:9%;background:var(--red)"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- EVENTI RECENTI -->
+<div class="section-label">Ultimi eventi pubblicati</div>
+<div style="padding:0 20px">
+  <div class="card">
+    <div class="recent-item">
+      <div class="recent-thumb">🎵</div>
+      <div class="recent-info">
+        <div class="recent-name">Notte Elettronica</div>
+        <div class="recent-meta">Sab 14 giu · Magazzino 42</div>
+      </div>
+      <div class="recent-val">
+        <div class="recent-amount">€1.842</div>
+        <span class="status-pill pill-upcoming">prossimo</span>
+      </div>
+    </div>
+    <div class="recent-item">
+      <div class="recent-thumb">🎭</div>
+      <div class="recent-info">
+        <div class="recent-name">Teatro Verdi – Nabucco</div>
+        <div class="recent-meta">Ven 13 giu · Teatro Verdi</div>
+      </div>
+      <div class="recent-val">
+        <div class="recent-amount">€3.210</div>
+        <span class="status-pill pill-live">live</span>
+      </div>
+    </div>
+    <div class="recent-item">
+      <div class="recent-thumb">🏃</div>
+      <div class="recent-info">
+        <div class="recent-name">Run Trieste 10k</div>
+        <div class="recent-meta">Dom 8 giu · Riva 3 Novembre</div>
+      </div>
+      <div class="recent-val">
+        <div class="recent-amount">€980</div>
+        <span class="status-pill pill-ended">concluso</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item">
+    <svg fill="none" stroke="#9997A8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nav-label">Home</span>
+  </div>
+  <div class="nav-item">
+    <svg fill="none" stroke="#9997A8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span class="nav-label">Eventi</span>
+  </div>
+  <div class="nav-item active">
+    <svg fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    <span class="nav-label" style="color:var(--accent)">Analytics</span>
+  </div>
+  <div class="nav-item">
+    <svg fill="none" stroke="#9997A8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span class="nav-label">Profilo</span>
+  </div>
+</div>
+
+</div>
+
+<style>
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+</style>
+
+<script>
+// Bar charts generativi
+function makeBars(id, color, vals){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const max=Math.max(...vals);
+  el.innerHTML=vals.map((v,i)=>{
+    const h=Math.round((v/max)*44);
+    const hi=i===vals.length-1;
+    return `<div class="bar${hi?' hi':''}" style="height:${h}px;background:${hi?color:'#2A2A2F'}"></div>`;
+  }).join('');
+}
+makeBars('bc1','#7B61FF',[55,62,58,70,65,80,78,85,90,88,95,100]);
+makeBars('bc2','#7B61FF',[40,55,60,72,68,80,75,88,85,90,95,100]);
+
+// Heatmap
+const hm=document.getElementById('heatmap');
+const levels=['','l1','l2','l3','l4'];
+for(let i=0;i<28;i++){
+  const d=document.createElement('div');
+  const r=Math.floor(Math.random()*5);
+  d.className='hm-cell'+(r>0?' '+levels[r]:'');
+  hm.appendChild(d);
+}
+
+// Period buttons
+document.querySelectorAll('.period-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>
